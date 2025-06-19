@@ -18,6 +18,6 @@ Install GCC to your host computer with the following commands:
 mkdir build-gcc
 cd build-gcc
 ../build-gcc/configure --target=<ARCH>-ethereal --prefix="/usr" --with-sysroot=<SYSROOT> --enable-languages=c --disable-multilib
-make all-gcc all-target-libgcc
+make -j4 all-gcc all-target-libgcc
 sudo make install-gcc install-target-libgcc
 ```
