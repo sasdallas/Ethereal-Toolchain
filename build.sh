@@ -101,7 +101,7 @@ echo "Binutils built and installed successfully"
 
 # Do GCC
 echo "Downloading GCC"
-wget https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}.tar.gz
+wget https://ftp.gnu.org/gnu/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
 tar -xf gcc-${GCC_VERSION}.tar.gz
 
 # Apply patch
