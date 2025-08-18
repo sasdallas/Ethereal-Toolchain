@@ -1,12 +1,12 @@
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/config.sub ethereal-gcc-12.2.0/config.sub
 --- gcc-12.2.0/config.sub	2022-08-19 03:09:52.128656687 -0500
-+++ ethereal-gcc-12.2.0/config.sub	2025-04-21 10:04:04.014635500 -0500
++++ ethereal-gcc-12.2.0/config.sub	2025-08-15 11:43:41.441766822 -0500
 @@ -1752 +1752 @@
 -	     | fiwix* )
 +	     | fiwix* | ethereal* )
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/fixincludes/mkfixinc.sh ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh
 --- gcc-12.2.0/fixincludes/mkfixinc.sh	2022-08-19 03:09:52.160657095 -0500
-+++ ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh	2025-04-21 10:14:48.374202700 -0500
++++ ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh	2025-08-15 11:43:41.442058579 -0500
 @@ -13 +13,3 @@
 -case $machine in
 +case $machine in 
@@ -14,8 +14,8 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/fixincludes/mkfixinc.sh ethereal-
 +    *-*-ethereal* | \
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/gcc/config/ethereal.h ethereal-gcc-12.2.0/gcc/config/ethereal.h
 --- gcc-12.2.0/gcc/config/ethereal.h	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/gcc/config/ethereal.h	2025-06-21 13:58:07.081843914 -0500
-@@ -0,0 +1,30 @@
++++ ethereal-gcc-12.2.0/gcc/config/ethereal.h	2025-08-18 10:43:05.067490126 -0500
+@@ -0,0 +1,33 @@
 +/**
 + * @brief Ethereal Operating System GCC configuration header
 + */
@@ -42,31 +42,34 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/gcc/config/ethereal.h ethereal-gc
 +    builtin_assert ("system=ethereal");   \
 +    builtin_assert ("system=unix");   \
 +    builtin_assert ("system=posix");   \
++    /* The GNU C++ standard library requires this.  */		\
++    if (c_dialect_cxx ())					\
++      builtin_define ("_GNU_SOURCE");				\
 +  } while(0);
 +
 +#undef LINK_SPEC
 +#define LINK_SPEC "-z max-page-size=4096 %{shared:-shared} %{static:-static} %{!shared: %{!static: %{rdynamic:-export-dynamic}}}"
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/gcc/config.gcc ethereal-gcc-12.2.0/gcc/config.gcc
 --- gcc-12.2.0/gcc/config.gcc	2022-08-19 03:09:52.552662114 -0500
-+++ ethereal-gcc-12.2.0/gcc/config.gcc	2025-04-21 10:24:49.746180100 -0500
++++ ethereal-gcc-12.2.0/gcc/config.gcc	2025-08-18 10:36:20.822325444 -0500
 @@ -775,0 +776,7 @@
 +*-*-ethereal*)
 +  extra_options="$extra_options gnu-user.opt"
 +  gas=yes
-+  gnu_d=yes
++  gnu_ld=yes
 +  default_use_cxa_atexit=yes
 +  use_gcc_stdint=provide
 +  ;;
 @@ -1920,0 +1928,6 @@
 +	;;
 +i[34567]86-*-ethereal*)
-+	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/i386elf.h ethereal.h"
++	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h ethereal.h"
 +	;;
 +x86_64-*-ethereal*)
-+	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/i386elf.h i386/x86-64.h ethereal.h"
++	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/x86-64.h ethereal.h"
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libgcc/config.host ethereal-gcc-12.2.0/libgcc/config.host
 --- gcc-12.2.0/libgcc/config.host	2022-08-19 03:09:54.664689148 -0500
-+++ ethereal-gcc-12.2.0/libgcc/config.host	2025-04-21 10:14:08.619822600 -0500
++++ ethereal-gcc-12.2.0/libgcc/config.host	2025-08-15 11:43:41.443004153 -0500
 @@ -613,0 +614,8 @@
 +i[34567]86-*-ethereal*)
 +	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o"
@@ -78,7 +81,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libgcc/config.host ethereal-gcc-1
 +	;;
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0 ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	2025-04-21 10:12:33.148434200 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	2025-08-15 11:43:41.456900478 -0500
 @@ -0,0 +1,87878 @@
 +@%:@! /bin/sh
 +@%:@ Guess values for system-dependent variables and create Makefiles.
@@ -87960,7 +87963,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/outpu
 +
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/requests ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	2025-04-21 10:12:33.773423000 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	2025-08-15 11:43:41.457900483 -0500
 @@ -0,0 +1,78 @@
 +# This file was generated.
 +# It contains the lists of macros which have been traced.
@@ -88042,7 +88045,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/reque
 +
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0 ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	2025-04-21 10:12:33.144434200 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	2025-08-15 11:43:41.470900542 -0500
 @@ -0,0 +1,43248 @@
 +m4trace:aclocal.m4:855: -1- m4_include([../config/acx.m4])
 +m4trace:aclocal.m4:856: -1- m4_include([../config/enable.m4])
@@ -131294,7 +131297,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/trace
 +m4trace:configure.ac:661: -1- AC_REQUIRE_AUX_FILE([ltmain.sh])
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/configure ethereal-gcc-12.2.0/libstdc++-v3/configure
 --- gcc-12.2.0/libstdc++-v3/configure	2022-08-19 03:09:55.416698774 -0500
-+++ ethereal-gcc-12.2.0/libstdc++-v3/configure	2025-04-21 10:12:33.772423000 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/configure	2025-08-15 11:43:41.477900574 -0500
 @@ -47504,0 +47505,5731 @@
 +  *-ethereal*)
 +
@@ -137029,7 +137032,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/configure ethereal-g
 +
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/crossconfig.m4 ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4
 --- gcc-12.2.0/libstdc++-v3/crossconfig.m4	2022-08-19 03:09:55.420698825 -0500
-+++ ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4	2025-04-21 10:12:24.937581600 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4	2025-08-15 11:43:41.479446703 -0500
 @@ -138,0 +139,7 @@
 +  *-ethereal*)
 +    GLIBCXX_CHECK_COMPILER_FEATURES
