@@ -98,6 +98,7 @@ else
 fi
 
 echo "Binutils built and installed successfully"
+cd ..
 
 # Do GCC
 echo "Downloading GCC"
@@ -109,7 +110,7 @@ echo "Applying GCC patch"
 cd gcc-${GCC_VERSION}
 patch -p1 < ../gcc-${GCC_VERSION}.patch
 cd ..
-echo "Patch applied successfully
+echo "Patch applied successfully"
 
 # Build GCC
 echo "Starting build of GCC"
