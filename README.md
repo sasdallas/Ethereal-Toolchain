@@ -15,7 +15,7 @@ Install binutils to your host computer with the following commands:
 ```
 mkdir build-binutils
 cd build-binutils
-../binutils-2.39/configure --target=$ARCH-ethereal --prefix="/usr" --with-sysroot=$SYSROOT --disable-werror
+../binutils-2.42/configure --target=$ARCH-ethereal --prefix="/usr" --with-sysroot=$SYSROOT --disable-werror
 make -j4
 sudo make DESTDIR=$DESTDIR install
 ```
@@ -24,7 +24,14 @@ Install GCC to your host computer with the following commands:
 ```
 mkdir build-gcc
 cd build-gcc
-../gcc-12.2.0/configure --target=$ARCH-ethereal --prefix="/usr" --with-sysroot=$SYSROOT --enable-languages=c,c++ --disable-multilib --enable-shared
+../gcc-12.2.0/configure --target=$ARCH-ethereal --prefix=/usr --with-sysroot=$SYSROOT  --enable-languages=c,c++ --disable-multilib -enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
 make -j4 all-gcc all-target-libgcc
 sudo make DESTDIR=$DESTDIR install-gcc install-target-libgcc
+```
+
+After you have installed the mlibc runtime, build libstdc++ with the following commands:
+```
+cd build-gcc
+make -j4 all-target-libstdc++-v3
+sudo make DESTDIR=$DESTDIR install-target-libstdc++-v3
 ```

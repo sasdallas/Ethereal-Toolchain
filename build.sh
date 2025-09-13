@@ -22,7 +22,7 @@ if [[ -z "${GCC_VERSION}" ]]; then
 fi
 
 if [[ -z "${BINUTILS_VERSION}" ]]; then
-	export BINUTILS_VERSION=2.39
+	export BINUTILS_VERSION=2.42
 fi
 
 if [[ -z "${DESTDIR}" ]]; then
@@ -116,7 +116,7 @@ echo "Patch applied successfully"
 echo "Starting build of GCC"
 mkdir build-gcc
 cd build-gcc
-../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=${PREFIX} --with-sysroot=$SYSROOT --disable-multilib --enable-languages=c
+../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --with-sysroot=$SYSROOT  --enable-languages=c,c++ --disable-multilib -enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
 make -j4 all-gcc all-target-libgcc
 
 # Install GCC

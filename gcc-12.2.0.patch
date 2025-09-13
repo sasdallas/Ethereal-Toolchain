@@ -1,88 +1,76 @@
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/config.sub ethereal-gcc-12.2.0/config.sub
 --- gcc-12.2.0/config.sub	2022-08-19 03:09:52.128656687 -0500
-+++ ethereal-gcc-12.2.0/config.sub	2025-08-15 11:43:41.441766822 -0500
++++ ethereal-gcc-12.2.0/config.sub	2025-09-13 09:52:59.960082192 -0500
 @@ -1752 +1752 @@
 -	     | fiwix* )
 +	     | fiwix* | ethereal* )
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/fixincludes/mkfixinc.sh ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh
 --- gcc-12.2.0/fixincludes/mkfixinc.sh	2022-08-19 03:09:52.160657095 -0500
-+++ ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh	2025-08-15 11:43:41.442058579 -0500
-@@ -13 +13,3 @@
--case $machine in
-+case $machine in 
++++ ethereal-gcc-12.2.0/fixincludes/mkfixinc.sh	2025-09-13 09:53:02.767978414 -0500
+@@ -13,0 +14,2 @@
 +    *-ethereal* | \
 +    *-*-ethereal* | \
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/gcc/config/ethereal.h ethereal-gcc-12.2.0/gcc/config/ethereal.h
 --- gcc-12.2.0/gcc/config/ethereal.h	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/gcc/config/ethereal.h	2025-08-18 10:43:05.067490126 -0500
-@@ -0,0 +1,33 @@
-+/**
-+ * @brief Ethereal Operating System GCC configuration header
-+ */
-+
++++ ethereal-gcc-12.2.0/gcc/config/ethereal.h	2025-09-13 09:53:00.057214131 -0500
+@@ -0,0 +1,26 @@
 +#undef TARGET_ETHEREAL
 +#define TARGET_ETHEREAL 1
 +
 +#undef LIB_SPEC
 +#define LIB_SPEC "-lc -lm"
 +
++#undef LINK_SPEC
++#define LINK_SPEC "%{shared:-shared} %{static:-static} %{!shared: %{!static: %{rdynamic:-export-dynamic}}} %{!dynamic-linker:-dynamic-linker /usr/lib/ld.so}"
++
 +#undef STARTFILE_SPEC
-+#define STARTFILE_SPEC "%{!shared: %{!pg:crt0.o%s}} crti.o%s %{!shared:crtbegin.o%s}"
++#define STARTFILE_SPEC "%{!shared:crt0.o%s} crti.o%s %{shared:crtbeginS.o%s;:crtbegin.o%s}"
 +
 +#undef ENDFILE_SPEC
-+#define ENDFILE_SPEC "%{!shared:crtend.o%s} crtn.o%s"
++#define ENDFILE_SPEC "%{shared:crtendS.o%s;:crtend.o%s} crtn.o%s"
++
 +
 +#undef TARGET_OS_CPP_BUILTINS
 +#define TARGET_OS_CPP_BUILTINS()      \
 +  do {                                \
-+    builtin_define ("__ethereal__");      \
-+    builtin_define ("__ETHEREAL__");	  \
-+    builtin_define ("__REDUCEOS__");  \
++    builtin_define ("__ETHEREAL__");      \
++    builtin_define ("__ethereal__");	\
 +    builtin_define ("__unix__");      \
 +    builtin_assert ("system=ethereal");   \
 +    builtin_assert ("system=unix");   \
 +    builtin_assert ("system=posix");   \
-+    /* The GNU C++ standard library requires this.  */		\
-+    if (c_dialect_cxx ())					\
-+      builtin_define ("_GNU_SOURCE");				\
 +  } while(0);
-+
-+#undef LINK_SPEC
-+#define LINK_SPEC "-z max-page-size=4096 %{shared:-shared} %{static:-static} %{!shared: %{!static: %{rdynamic:-export-dynamic}}}"
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/gcc/config.gcc ethereal-gcc-12.2.0/gcc/config.gcc
 --- gcc-12.2.0/gcc/config.gcc	2022-08-19 03:09:52.552662114 -0500
-+++ ethereal-gcc-12.2.0/gcc/config.gcc	2025-08-18 10:36:20.822325444 -0500
-@@ -775,0 +776,7 @@
++++ ethereal-gcc-12.2.0/gcc/config.gcc	2025-09-13 09:53:02.560949442 -0500
+@@ -775,0 +776,8 @@
 +*-*-ethereal*)
 +  extra_options="$extra_options gnu-user.opt"
 +  gas=yes
 +  gnu_ld=yes
 +  default_use_cxa_atexit=yes
 +  use_gcc_stdint=provide
++  thread_file='posix'
 +  ;;
-@@ -1920,0 +1928,6 @@
+@@ -1902,0 +1911,6 @@
 +	;;
 +i[34567]86-*-ethereal*)
-+	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h ethereal.h"
++	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h ethereal.h gnu-user.h"
 +	;;
 +x86_64-*-ethereal*)
-+	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/x86-64.h ethereal.h"
++	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h i386/x86-64.h ethereal.h gnu-user.h"
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libgcc/config.host ethereal-gcc-12.2.0/libgcc/config.host
 --- gcc-12.2.0/libgcc/config.host	2022-08-19 03:09:54.664689148 -0500
-+++ ethereal-gcc-12.2.0/libgcc/config.host	2025-08-15 11:43:41.443004153 -0500
-@@ -613,0 +614,8 @@
-+i[34567]86-*-ethereal*)
-+	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o"
-+	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
-+	;;
++++ ethereal-gcc-12.2.0/libgcc/config.host	2025-09-13 09:53:02.772745540 -0500
+@@ -753,0 +754,4 @@
 +x86_64-*-ethereal*)
-+	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o"
-+	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
++	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o crtbeginS.o crtendS.o crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
++	tmake_file="$tmake_file t-crtstuff-pic t-libgcc-pic i386/t-crtpc t-crtfm i386/t-crtstuff t-dfprules"
 +	;;
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0 ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	2025-08-15 11:43:41.456900478 -0500
-@@ -0,0 +1,87878 @@
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/output.0	2025-09-13 10:54:05.851519084 -0500
+@@ -0,0 +1,88121 @@
 +@%:@! /bin/sh
 +@%:@ Guess values for system-dependent variables and create Makefiles.
 +@%:@ Generated by GNU Autoconf 2.69 for package-unused version-unused.
@@ -15682,7 +15670,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/outpu
 +# Use glibcxx_compiler_pic_flag to designate a compile-time flags for
 +# creating position-independent objects. This varies with the target
 +# hardware and operating system, but is often: -DPIC -fPIC.
-+if test "$enable_shared" = yes; then
++if test "$enable_shared" = yes || test "${with_pic+set}" = set; then
 +  glibcxx_lt_pic_flag="-prefer-pic"
 +  glibcxx_compiler_pic_flag="$lt_prog_compiler_pic_CXX"
 +  glibcxx_compiler_shared_flag="-D_GLIBCXX_SHARED"
@@ -47304,289 +47292,6 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/outpu
 +
 +    ;;
 +
-+  *-freebsd*)
-+    SECTION_FLAGS='-ffunction-sections -fdata-sections'
-+     
-+    
-+  # If we're not using GNU ld, then there's no point in even trying these
-+  # tests.  Check for that first.  We should have already tested for gld
-+  # by now (in libtool), but require it now just to be safe...
-+  test -z "$SECTION_LDFLAGS" && SECTION_LDFLAGS=''
-+  test -z "$OPT_LDFLAGS" && OPT_LDFLAGS=''
-+  
-+  
-+
-+  # The name set by libtool depends on the version of libtool.  Shame on us
-+  # for depending on an impl detail, but c'est la vie.  Older versions used
-+  # ac_cv_prog_gnu_ld, but now it's lt_cv_prog_gnu_ld, and is copied back on
-+  # top of with_gnu_ld (which is also set by --with-gnu-ld, so that actually
-+  # makes sense).  We'll test with_gnu_ld everywhere else, so if that isn't
-+  # set (hence we're using an older libtool), then set it.
-+  if test x${with_gnu_ld+set} != xset; then
-+    if test x${ac_cv_prog_gnu_ld+set} != xset; then
-+      # We got through "ac_require(ac_prog_ld)" and still not set?  Huh?
-+      with_gnu_ld=no
-+    else
-+      with_gnu_ld=$ac_cv_prog_gnu_ld
-+    fi
-+  fi
-+
-+  # Start by getting the version number.  I think the libtool test already
-+  # does some of this, but throws away the result.
-+  glibcxx_ld_is_gold=no
-+  glibcxx_ld_is_mold=no
-+  if test x"$with_gnu_ld" = x"yes"; then
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld version" >&5
-+$as_echo_n "checking for ld version... " >&6; }
-+    
-+    if $LD --version 2>/dev/null | grep 'GNU gold' >/dev/null 2>&1; then
-+      glibcxx_ld_is_gold=yes
-+    elif $LD --version 2>/dev/null | grep 'mold' >/dev/null 2>&1; then
-+      glibcxx_ld_is_mold=yes
-+    fi
-+    ldver=`$LD --version 2>/dev/null |
-+	   sed -e 's/[. ][0-9]\{8\}$//;s/.* \([^ ]\{1,\}\)$/\1/; q'`
-+    
-+    glibcxx_gnu_ld_version=`echo $ldver | \
-+	   $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_gnu_ld_version" >&5
-+$as_echo "$glibcxx_gnu_ld_version" >&6; }
-+  fi
-+
-+  # Set --gc-sections.
-+  glibcxx_have_gc_sections=no
-+  if test "$glibcxx_ld_is_gold" = "yes" || test "$glibcxx_ld_is_mold" = "yes" ; then
-+    if $LD --help 2>/dev/null | grep gc-sections >/dev/null 2>&1; then
-+      glibcxx_have_gc_sections=yes
-+    fi
-+  else
-+    glibcxx_gcsections_min_ld=21602
-+    if test x"$with_gnu_ld" = x"yes" &&
-+	test $glibcxx_gnu_ld_version -gt $glibcxx_gcsections_min_ld ; then
-+      glibcxx_have_gc_sections=yes
-+    fi
-+  fi
-+  if test "$glibcxx_have_gc_sections" = "yes"; then
-+    # Sufficiently young GNU ld it is!  Joy and bunny rabbits!
-+    # NB: This flag only works reliably after 2.16.1. Configure tests
-+    # for this are difficult, so hard wire a value that should work.
-+
-+    ac_test_CFLAGS="${CFLAGS+set}"
-+    ac_save_CFLAGS="$CFLAGS"
-+    CFLAGS='-Wl,--gc-sections'
-+
-+    # Check for -Wl,--gc-sections
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld that supports -Wl,--gc-sections" >&5
-+$as_echo_n "checking for ld that supports -Wl,--gc-sections... " >&6; }
-+    if test x$gcc_no_link = xyes; then
-+  as_fn_error $? "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-+fi
-+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-+/* end confdefs.h.  */
-+ int one(void) { return 1; }
-+     int two(void) { return 2; }
-+	
-+int
-+main ()
-+{
-+ two();  
-+  ;
-+  return 0;
-+}
-+_ACEOF
-+if ac_fn_c_try_link "$LINENO"; then :
-+  ac_gcsections=yes
-+else
-+  ac_gcsections=no
-+fi
-+rm -f core conftest.err conftest.$ac_objext \
-+    conftest$ac_exeext conftest.$ac_ext
-+    if test "$ac_gcsections" = "yes"; then
-+      rm -f conftest.c
-+      touch conftest.c
-+      if $CC -c conftest.c; then
-+	if $LD --gc-sections -o conftest conftest.o 2>&1 | \
-+	   grep "Warning: gc-sections option ignored" > /dev/null; then
-+	  ac_gcsections=no
-+	fi
-+      fi
-+      rm -f conftest.c conftest.o conftest
-+    fi
-+    if test "$ac_gcsections" = "yes"; then
-+      SECTION_LDFLAGS="-Wl,--gc-sections $SECTION_LDFLAGS"
-+    fi
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_gcsections" >&5
-+$as_echo "$ac_gcsections" >&6; }
-+
-+    if test "$ac_test_CFLAGS" = set; then
-+      CFLAGS="$ac_save_CFLAGS"
-+    else
-+      # this is the suspicious part
-+      CFLAGS=''
-+    fi
-+  fi
-+
-+  # Set -z,relro.
-+  # Note this is only for shared objects.
-+  ac_ld_relro=no
-+  if test x"$with_gnu_ld" = x"yes"; then
-+    # cygwin and mingw uses PE, which has no ELF relro support,
-+    # multi target ld may confuse configure machinery
-+    case "$host" in
-+    *-*-cygwin*)
-+     ;;
-+    *-*-mingw*)
-+     ;;
-+    *)
-+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld that supports -Wl,-z,relro" >&5
-+$as_echo_n "checking for ld that supports -Wl,-z,relro... " >&6; }
-+      cxx_z_relo=`$LD -v --help 2>/dev/null | grep "z relro"`
-+      if test -n "$cxx_z_relo"; then
-+        OPT_LDFLAGS="-Wl,-z,relro"
-+        ac_ld_relro=yes
-+      fi
-+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ld_relro" >&5
-+$as_echo "$ac_ld_relro" >&6; }
-+    esac
-+  fi
-+
-+  # Set linker optimization flags.
-+  if test x"$with_gnu_ld" = x"yes"; then
-+    OPT_LDFLAGS="-Wl,-O1 $OPT_LDFLAGS"
-+  fi
-+
-+  
-+  
-+
-+    $as_echo "@%:@define HAVE_SETENV 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FINITEF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FINITE 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FREXPF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_HYPOT 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_HYPOTF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ISINF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ISNAN 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ISNANF 1" >>confdefs.h
-+
-+
-+    $as_echo "@%:@define HAVE_ACOSF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ASINF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ATAN2F 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_ATANF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_CEILF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_COSF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_COSHF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_EXPF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FABSF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FLOORF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FMODF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_FREXPF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_LDEXPF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_LOG10F 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_LOGF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_MODFF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_POWF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_SINF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_SINHF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_SQRTF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_TANF 1" >>confdefs.h
-+
-+    $as_echo "@%:@define HAVE_TANHF 1" >>confdefs.h
-+
-+    if test x"long_double_math_on_this_cpu" = x"yes"; then
-+      $as_echo "@%:@define HAVE_FINITEL 1" >>confdefs.h
-+
-+      $as_echo "@%:@define HAVE_ISINFL 1" >>confdefs.h
-+
-+      $as_echo "@%:@define HAVE_ISNANL 1" >>confdefs.h
-+
-+    fi
-+    for ac_func in __cxa_thread_atexit
-+do :
-+  ac_fn_c_check_func "$LINENO" "__cxa_thread_atexit" "ac_cv_func___cxa_thread_atexit"
-+if test "x$ac_cv_func___cxa_thread_atexit" = xyes; then :
-+  cat >>confdefs.h <<_ACEOF
-+@%:@define HAVE___CXA_THREAD_ATEXIT 1
-+_ACEOF
-+ 
-+fi
-+done
-+
-+    for ac_func in aligned_alloc posix_memalign memalign _aligned_malloc
-+do :
-+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-+  cat >>confdefs.h <<_ACEOF
-+@%:@define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-+_ACEOF
-+ 
-+fi
-+done
-+
-+    for ac_func in timespec_get
-+do :
-+  ac_fn_c_check_func "$LINENO" "timespec_get" "ac_cv_func_timespec_get"
-+if test "x$ac_cv_func_timespec_get" = xyes; then :
-+  cat >>confdefs.h <<_ACEOF
-+@%:@define HAVE_TIMESPEC_GET 1
-+_ACEOF
-+ 
-+fi
-+done
-+
-+    for ac_func in sockatmark
-+do :
-+  ac_fn_c_check_func "$LINENO" "sockatmark" "ac_cv_func_sockatmark"
-+if test "x$ac_cv_func_sockatmark" = xyes; then :
-+  cat >>confdefs.h <<_ACEOF
-+@%:@define HAVE_SOCKATMARK 1
-+_ACEOF
-+ 
-+fi
-+done
-+
-+    for ac_func in uselocale
-+do :
-+  ac_fn_c_check_func "$LINENO" "uselocale" "ac_cv_func_uselocale"
-+if test "x$ac_cv_func_uselocale" = xyes; then :
-+  cat >>confdefs.h <<_ACEOF
-+@%:@define HAVE_USELOCALE 1
-+_ACEOF
-+ 
-+fi
-+done
-+
-+    ;;
-+
 +  *-ethereal*)
 +    
 +  # All these tests are for C++; save the language and the compiler flags.
@@ -53315,7 +53020,533 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/outpu
 +  LIBS="$ac_save_LIBS"
 +  CXXFLAGS="$ac_save_CXXFLAGS"
 +
-+    GILBCXX_CHECK_STDLIB_SUPPORT
++    
++  ac_test_CXXFLAGS="${CXXFLAGS+set}"
++  ac_save_CXXFLAGS="$CXXFLAGS"
++  CXXFLAGS='-fno-builtin -D_GNU_SOURCE'
++
++  
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for at_quick_exit declaration" >&5
++$as_echo_n "checking for at_quick_exit declaration... " >&6; }
++  if test x${glibcxx_cv_func_at_quick_exit_use+set} != xset; then
++    if ${glibcxx_cv_func_at_quick_exit_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  
++      
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ at_quick_exit(0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_at_quick_exit_use=yes
++else
++  glibcxx_cv_func_at_quick_exit_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++    
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_at_quick_exit_use" >&5
++$as_echo "$glibcxx_cv_func_at_quick_exit_use" >&6; }
++  if test x$glibcxx_cv_func_at_quick_exit_use = x"yes"; then
++    for ac_func in at_quick_exit
++do :
++  ac_fn_c_check_func "$LINENO" "at_quick_exit" "ac_cv_func_at_quick_exit"
++if test "x$ac_cv_func_at_quick_exit" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_AT_QUICK_EXIT 1
++_ACEOF
++ 
++fi
++done
++
++  fi
++
++  
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for quick_exit declaration" >&5
++$as_echo_n "checking for quick_exit declaration... " >&6; }
++  if test x${glibcxx_cv_func_quick_exit_use+set} != xset; then
++    if ${glibcxx_cv_func_quick_exit_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  
++      
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ quick_exit(0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_quick_exit_use=yes
++else
++  glibcxx_cv_func_quick_exit_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++    
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_quick_exit_use" >&5
++$as_echo "$glibcxx_cv_func_quick_exit_use" >&6; }
++  if test x$glibcxx_cv_func_quick_exit_use = x"yes"; then
++    for ac_func in quick_exit
++do :
++  ac_fn_c_check_func "$LINENO" "quick_exit" "ac_cv_func_quick_exit"
++if test "x$ac_cv_func_quick_exit" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_QUICK_EXIT 1
++_ACEOF
++ 
++fi
++done
++
++  fi
++
++  
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtold declaration" >&5
++$as_echo_n "checking for strtold declaration... " >&6; }
++  if test x${glibcxx_cv_func_strtold_use+set} != xset; then
++    if ${glibcxx_cv_func_strtold_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  
++      
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ strtold(0, 0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_strtold_use=yes
++else
++  glibcxx_cv_func_strtold_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++    
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_strtold_use" >&5
++$as_echo "$glibcxx_cv_func_strtold_use" >&6; }
++  if test x$glibcxx_cv_func_strtold_use = x"yes"; then
++    for ac_func in strtold
++do :
++  ac_fn_c_check_func "$LINENO" "strtold" "ac_cv_func_strtold"
++if test "x$ac_cv_func_strtold" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_STRTOLD 1
++_ACEOF
++ 
++fi
++done
++
++  fi
++  
++
++
++  
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtof declaration" >&5
++$as_echo_n "checking for strtof declaration... " >&6; }
++  if test x${glibcxx_cv_func_strtof_use+set} != xset; then
++    if ${glibcxx_cv_func_strtof_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  
++      
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ strtof(0, 0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_strtof_use=yes
++else
++  glibcxx_cv_func_strtof_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++    
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_strtof_use" >&5
++$as_echo "$glibcxx_cv_func_strtof_use" >&6; }
++  if test x$glibcxx_cv_func_strtof_use = x"yes"; then
++    for ac_func in strtof
++do :
++  ac_fn_c_check_func "$LINENO" "strtof" "ac_cv_func_strtof"
++if test "x$ac_cv_func_strtof" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_STRTOF 1
++_ACEOF
++ 
++fi
++done
++
++  fi
++  
++
++
++
++  CXXFLAGS="$ac_save_CXXFLAGS"
++
++    ;;
++
++  *-freebsd*)
++    SECTION_FLAGS='-ffunction-sections -fdata-sections'
++     
++    
++  # If we're not using GNU ld, then there's no point in even trying these
++  # tests.  Check for that first.  We should have already tested for gld
++  # by now (in libtool), but require it now just to be safe...
++  test -z "$SECTION_LDFLAGS" && SECTION_LDFLAGS=''
++  test -z "$OPT_LDFLAGS" && OPT_LDFLAGS=''
++  
++  
++
++  # The name set by libtool depends on the version of libtool.  Shame on us
++  # for depending on an impl detail, but c'est la vie.  Older versions used
++  # ac_cv_prog_gnu_ld, but now it's lt_cv_prog_gnu_ld, and is copied back on
++  # top of with_gnu_ld (which is also set by --with-gnu-ld, so that actually
++  # makes sense).  We'll test with_gnu_ld everywhere else, so if that isn't
++  # set (hence we're using an older libtool), then set it.
++  if test x${with_gnu_ld+set} != xset; then
++    if test x${ac_cv_prog_gnu_ld+set} != xset; then
++      # We got through "ac_require(ac_prog_ld)" and still not set?  Huh?
++      with_gnu_ld=no
++    else
++      with_gnu_ld=$ac_cv_prog_gnu_ld
++    fi
++  fi
++
++  # Start by getting the version number.  I think the libtool test already
++  # does some of this, but throws away the result.
++  glibcxx_ld_is_gold=no
++  glibcxx_ld_is_mold=no
++  if test x"$with_gnu_ld" = x"yes"; then
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld version" >&5
++$as_echo_n "checking for ld version... " >&6; }
++    
++    if $LD --version 2>/dev/null | grep 'GNU gold' >/dev/null 2>&1; then
++      glibcxx_ld_is_gold=yes
++    elif $LD --version 2>/dev/null | grep 'mold' >/dev/null 2>&1; then
++      glibcxx_ld_is_mold=yes
++    fi
++    ldver=`$LD --version 2>/dev/null |
++	   sed -e 's/[. ][0-9]\{8\}$//;s/.* \([^ ]\{1,\}\)$/\1/; q'`
++    
++    glibcxx_gnu_ld_version=`echo $ldver | \
++	   $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_gnu_ld_version" >&5
++$as_echo "$glibcxx_gnu_ld_version" >&6; }
++  fi
++
++  # Set --gc-sections.
++  glibcxx_have_gc_sections=no
++  if test "$glibcxx_ld_is_gold" = "yes" || test "$glibcxx_ld_is_mold" = "yes" ; then
++    if $LD --help 2>/dev/null | grep gc-sections >/dev/null 2>&1; then
++      glibcxx_have_gc_sections=yes
++    fi
++  else
++    glibcxx_gcsections_min_ld=21602
++    if test x"$with_gnu_ld" = x"yes" &&
++	test $glibcxx_gnu_ld_version -gt $glibcxx_gcsections_min_ld ; then
++      glibcxx_have_gc_sections=yes
++    fi
++  fi
++  if test "$glibcxx_have_gc_sections" = "yes"; then
++    # Sufficiently young GNU ld it is!  Joy and bunny rabbits!
++    # NB: This flag only works reliably after 2.16.1. Configure tests
++    # for this are difficult, so hard wire a value that should work.
++
++    ac_test_CFLAGS="${CFLAGS+set}"
++    ac_save_CFLAGS="$CFLAGS"
++    CFLAGS='-Wl,--gc-sections'
++
++    # Check for -Wl,--gc-sections
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld that supports -Wl,--gc-sections" >&5
++$as_echo_n "checking for ld that supports -Wl,--gc-sections... " >&6; }
++    if test x$gcc_no_link = xyes; then
++  as_fn_error $? "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
++fi
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++ int one(void) { return 1; }
++     int two(void) { return 2; }
++	
++int
++main ()
++{
++ two();  
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_link "$LINENO"; then :
++  ac_gcsections=yes
++else
++  ac_gcsections=no
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++    if test "$ac_gcsections" = "yes"; then
++      rm -f conftest.c
++      touch conftest.c
++      if $CC -c conftest.c; then
++	if $LD --gc-sections -o conftest conftest.o 2>&1 | \
++	   grep "Warning: gc-sections option ignored" > /dev/null; then
++	  ac_gcsections=no
++	fi
++      fi
++      rm -f conftest.c conftest.o conftest
++    fi
++    if test "$ac_gcsections" = "yes"; then
++      SECTION_LDFLAGS="-Wl,--gc-sections $SECTION_LDFLAGS"
++    fi
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_gcsections" >&5
++$as_echo "$ac_gcsections" >&6; }
++
++    if test "$ac_test_CFLAGS" = set; then
++      CFLAGS="$ac_save_CFLAGS"
++    else
++      # this is the suspicious part
++      CFLAGS=''
++    fi
++  fi
++
++  # Set -z,relro.
++  # Note this is only for shared objects.
++  ac_ld_relro=no
++  if test x"$with_gnu_ld" = x"yes"; then
++    # cygwin and mingw uses PE, which has no ELF relro support,
++    # multi target ld may confuse configure machinery
++    case "$host" in
++    *-*-cygwin*)
++     ;;
++    *-*-mingw*)
++     ;;
++    *)
++      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld that supports -Wl,-z,relro" >&5
++$as_echo_n "checking for ld that supports -Wl,-z,relro... " >&6; }
++      cxx_z_relo=`$LD -v --help 2>/dev/null | grep "z relro"`
++      if test -n "$cxx_z_relo"; then
++        OPT_LDFLAGS="-Wl,-z,relro"
++        ac_ld_relro=yes
++      fi
++      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ld_relro" >&5
++$as_echo "$ac_ld_relro" >&6; }
++    esac
++  fi
++
++  # Set linker optimization flags.
++  if test x"$with_gnu_ld" = x"yes"; then
++    OPT_LDFLAGS="-Wl,-O1 $OPT_LDFLAGS"
++  fi
++
++  
++  
++
++    $as_echo "@%:@define HAVE_SETENV 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FINITEF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FINITE 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FREXPF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_HYPOT 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_HYPOTF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ISINF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ISNAN 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ISNANF 1" >>confdefs.h
++
++
++    $as_echo "@%:@define HAVE_ACOSF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ASINF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ATAN2F 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_ATANF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_CEILF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_COSF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_COSHF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_EXPF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FABSF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FLOORF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FMODF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_FREXPF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_LDEXPF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_LOG10F 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_LOGF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_MODFF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_POWF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_SINF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_SINHF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_SQRTF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_TANF 1" >>confdefs.h
++
++    $as_echo "@%:@define HAVE_TANHF 1" >>confdefs.h
++
++    if test x"long_double_math_on_this_cpu" = x"yes"; then
++      $as_echo "@%:@define HAVE_FINITEL 1" >>confdefs.h
++
++      $as_echo "@%:@define HAVE_ISINFL 1" >>confdefs.h
++
++      $as_echo "@%:@define HAVE_ISNANL 1" >>confdefs.h
++
++    fi
++    for ac_func in __cxa_thread_atexit
++do :
++  ac_fn_c_check_func "$LINENO" "__cxa_thread_atexit" "ac_cv_func___cxa_thread_atexit"
++if test "x$ac_cv_func___cxa_thread_atexit" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE___CXA_THREAD_ATEXIT 1
++_ACEOF
++ 
++fi
++done
++
++    for ac_func in aligned_alloc posix_memalign memalign _aligned_malloc
++do :
++  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
++ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
++if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
++_ACEOF
++ 
++fi
++done
++
++    for ac_func in timespec_get
++do :
++  ac_fn_c_check_func "$LINENO" "timespec_get" "ac_cv_func_timespec_get"
++if test "x$ac_cv_func_timespec_get" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_TIMESPEC_GET 1
++_ACEOF
++ 
++fi
++done
++
++    for ac_func in sockatmark
++do :
++  ac_fn_c_check_func "$LINENO" "sockatmark" "ac_cv_func_sockatmark"
++if test "x$ac_cv_func_sockatmark" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_SOCKATMARK 1
++_ACEOF
++ 
++fi
++done
++
++    for ac_func in uselocale
++do :
++  ac_fn_c_check_func "$LINENO" "uselocale" "ac_cv_func_uselocale"
++if test "x$ac_cv_func_uselocale" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++@%:@define HAVE_USELOCALE 1
++_ACEOF
++ 
++fi
++done
++
 +    ;;
 +
 +  *-fuchsia*)
@@ -87963,7 +88194,7 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/outpu
 +
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/requests ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	2025-08-15 11:43:41.457900483 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/requests	2025-09-13 10:54:06.466520545 -0500
 @@ -0,0 +1,78 @@
 +# This file was generated.
 +# It contains the lists of macros which have been traced.
@@ -87974,79 +88205,79 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/reque
 +                      '0',
 +                      1,
 +                      [
-+                        '/usr/local/share/autoconf'
++                        '/usr/share/autoconf'
 +                      ],
 +                      [
-+                        '/usr/local/share/autoconf/autoconf/autoconf.m4f',
++                        '/usr/share/autoconf/autoconf/autoconf.m4f',
 +                        'aclocal.m4',
 +                        'configure.ac'
 +                      ],
 +                      {
-+                        'AC_CONFIG_AUX_DIR' => 1,
-+                        'AC_FC_PP_SRCEXT' => 1,
-+                        'AC_CONFIG_SUBDIRS' => 1,
-+                        'AC_CONFIG_LINKS' => 1,
-+                        '_AM_COND_IF' => 1,
-+                        'AM_NLS' => 1,
-+                        'AC_FC_PP_DEFINE' => 1,
-+                        '_AM_COND_ELSE' => 1,
-+                        'AM_INIT_AUTOMAKE' => 1,
-+                        '_AM_SUBST_NOTMAKE' => 1,
-+                        'LT_SUPPORTED_TAG' => 1,
-+                        'AC_CONFIG_FILES' => 1,
-+                        'AC_SUBST' => 1,
-+                        'LT_CONFIG_LTDL_DIR' => 1,
-+                        'AC_FC_SRCEXT' => 1,
++                        'AM_PROG_MOC' => 1,
 +                        'AC_REQUIRE_AUX_FILE' => 1,
++                        'LT_SUPPORTED_TAG' => 1,
++                        'AC_PROG_LIBTOOL' => 1,
++                        'AC_CANONICAL_SYSTEM' => 1,
++                        'AC_SUBST' => 1,
++                        'AC_FC_SRCEXT' => 1,
++                        'LT_CONFIG_LTDL_DIR' => 1,
++                        'AM_AUTOMAKE_VERSION' => 1,
++                        'AM_XGETTEXT_OPTION' => 1,
++                        'AC_CONFIG_LINKS' => 1,
 +                        'AC_CANONICAL_TARGET' => 1,
++                        'm4_sinclude' => 1,
++                        'AC_FC_PP_DEFINE' => 1,
++                        'AM_SILENT_RULES' => 1,
++                        '_AM_COND_ENDIF' => 1,
++                        'm4_include' => 1,
++                        'AC_CONFIG_FILES' => 1,
++                        'AC_CONFIG_AUX_DIR' => 1,
++                        'LT_INIT' => 1,
++                        '_AM_MAKEFILE_INCLUDE' => 1,
++                        'AC_CANONICAL_BUILD' => 1,
++                        'AM_GNU_GETTEXT_INTL_SUBDIR' => 1,
++                        'AM_POT_TOOLS' => 1,
++                        'AM_GNU_GETTEXT' => 1,
++                        'include' => 1,
++                        'AC_DEFINE_TRACE_LITERAL' => 1,
++                        'AM_MAKEFILE_INCLUDE' => 1,
++                        'AM_INIT_AUTOMAKE' => 1,
++                        'AC_CONFIG_SUBDIRS' => 1,
 +                        'AM_CONDITIONAL' => 1,
-+                        'AM_PROG_F77_C_O' => 1,
++                        'sinclude' => 1,
++                        'AM_NLS' => 1,
++                        '_AM_SUBST_NOTMAKE' => 1,
++                        'AC_CANONICAL_HOST' => 1,
++                        '_AM_COND_ELSE' => 1,
++                        'AC_CONFIG_LIBOBJ_DIR' => 1,
++                        'AM_PATH_GUILE' => 1,
++                        'AH_OUTPUT' => 1,
 +                        'AC_INIT' => 1,
 +                        'm4_pattern_forbid' => 1,
-+                        'AM_POT_TOOLS' => 1,
-+                        'm4_sinclude' => 1,
-+                        '_AM_COND_ENDIF' => 1,
-+                        'AM_PROG_AR' => 1,
-+                        'm4_include' => 1,
-+                        'AM_SILENT_RULES' => 1,
-+                        '_LT_AC_TAGCONFIG' => 1,
-+                        'AC_CANONICAL_SYSTEM' => 1,
-+                        'AM_GNU_GETTEXT_INTL_SUBDIR' => 1,
-+                        'AM_PATH_GUILE' => 1,
-+                        'AM_GNU_GETTEXT' => 1,
-+                        'AM_PROG_CXX_C_O' => 1,
-+                        'AM_XGETTEXT_OPTION' => 1,
 +                        '_m4_warn' => 1,
 +                        'AC_CONFIG_HEADERS' => 1,
-+                        'AM_AUTOMAKE_VERSION' => 1,
-+                        'AC_CANONICAL_HOST' => 1,
-+                        'AM_ENABLE_MULTILIB' => 1,
-+                        'AM_MAKEFILE_INCLUDE' => 1,
-+                        'LT_INIT' => 1,
-+                        'm4_pattern_allow' => 1,
-+                        'sinclude' => 1,
-+                        'AM_PROG_MOC' => 1,
-+                        'AC_CONFIG_LIBOBJ_DIR' => 1,
-+                        'AC_FC_FREEFORM' => 1,
++                        'AM_PROG_F77_C_O' => 1,
 +                        'AM_PROG_CC_C_O' => 1,
-+                        'AM_MAINTAINER_MODE' => 1,
-+                        'AC_CANONICAL_BUILD' => 1,
-+                        'AM_PROG_FC_C_O' => 1,
 +                        'AC_SUBST_TRACE' => 1,
++                        'AC_FC_PP_SRCEXT' => 1,
++                        'AM_PROG_FC_C_O' => 1,
++                        'AM_PROG_AR' => 1,
++                        'AM_ENABLE_MULTILIB' => 1,
++                        '_AM_COND_IF' => 1,
++                        'AM_PROG_CXX_C_O' => 1,
++                        '_LT_AC_TAGCONFIG' => 1,
++                        'AM_MAINTAINER_MODE' => 1,
++                        'AC_FC_FREEFORM' => 1,
 +                        'AC_LIBSOURCE' => 1,
-+                        '_AM_MAKEFILE_INCLUDE' => 1,
-+                        'AC_DEFINE_TRACE_LITERAL' => 1,
-+                        'AH_OUTPUT' => 1,
-+                        'include' => 1,
-+                        'AC_PROG_LIBTOOL' => 1
++                        'm4_pattern_allow' => 1
 +                      }
 +                    ], 'Autom4te::Request' )
 +           );
 +
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0 ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0
 --- gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	1969-12-31 18:00:00.000000000 -0600
-+++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	2025-08-15 11:43:41.470900542 -0500
-@@ -0,0 +1,43248 @@
++++ ethereal-gcc-12.2.0/libstdc++-v3/autom4te.cache/traces.0	2025-09-13 10:54:05.849519079 -0500
+@@ -0,0 +1,43414 @@
 +m4trace:aclocal.m4:855: -1- m4_include([../config/acx.m4])
 +m4trace:aclocal.m4:856: -1- m4_include([../config/enable.m4])
 +m4trace:aclocal.m4:857: -1- m4_include([../config/futex.m4])
@@ -107379,112 +107610,6 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/trace
 +m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SINCOS$])
 +m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_HYPOT])
 +m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_HYPOT$])
-+m4trace:configure.ac:357: -1- AC_SUBST([SECTION_FLAGS])
-+m4trace:configure.ac:357: -1- AC_SUBST_TRACE([SECTION_FLAGS])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^SECTION_FLAGS$])
-+m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_LINK' is obsolete.
-+You should run autoupdate.], [../../../lib/autoconf/general.m4:2687: AC_TRY_LINK is expanded from...
-+acinclude.m4:181: GLIBCXX_CHECK_LINKER_FEATURES is expanded from...
-+crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
-+configure.ac:357: the top level])
-+m4trace:configure.ac:357: -1- AC_SUBST([SECTION_LDFLAGS])
-+m4trace:configure.ac:357: -1- AC_SUBST_TRACE([SECTION_LDFLAGS])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^SECTION_LDFLAGS$])
-+m4trace:configure.ac:357: -1- AC_SUBST([OPT_LDFLAGS])
-+m4trace:configure.ac:357: -1- AC_SUBST_TRACE([OPT_LDFLAGS])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^OPT_LDFLAGS$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SETENV])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SETENV$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITEF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITEF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITE])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITE$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FREXPF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FREXPF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_HYPOT])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_HYPOT$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_HYPOTF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_HYPOTF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISINF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISINF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNAN])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNAN$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNANF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNANF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ACOSF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ACOSF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ASINF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ASINF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ATAN2F])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ATAN2F$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ATANF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ATANF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_CEILF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_CEILF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_COSF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_COSF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_COSHF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_COSHF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_EXPF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_EXPF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FABSF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FABSF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FLOORF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FLOORF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FMODF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FMODF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FREXPF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FREXPF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LDEXPF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LDEXPF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LOG10F])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LOG10F$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LOGF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LOGF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_MODFF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_MODFF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_POWF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_POWF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SINF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SINF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SINHF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SINHF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SQRTF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SQRTF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TANF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TANF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TANHF])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TANHF$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITEL])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITEL$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISINFL])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISINFL$])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNANL])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNANL$])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE___CXA_THREAD_ATEXIT], [/* Define to 1 if you have the `__cxa_thread_atexit\' function. */
-+@%:@undef HAVE___CXA_THREAD_ATEXIT])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE___CXA_THREAD_ATEXIT])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE___CXA_THREAD_ATEXIT$])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_ALIGNED_ALLOC], [/* Define to 1 if you have the `aligned_alloc\' function. */
-+@%:@undef HAVE_ALIGNED_ALLOC])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_POSIX_MEMALIGN], [/* Define to 1 if you have the `posix_memalign\' function. */
-+@%:@undef HAVE_POSIX_MEMALIGN])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_MEMALIGN], [/* Define to 1 if you have the `memalign\' function. */
-+@%:@undef HAVE_MEMALIGN])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE__ALIGNED_MALLOC], [/* Define to 1 if you have the `_aligned_malloc\' function. */
-+@%:@undef HAVE__ALIGNED_MALLOC])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_TIMESPEC_GET], [/* Define to 1 if you have the `timespec_get\' function. */
-+@%:@undef HAVE_TIMESPEC_GET])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TIMESPEC_GET])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TIMESPEC_GET$])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_SOCKATMARK], [/* Define to 1 if you have the `sockatmark\' function. */
-+@%:@undef HAVE_SOCKATMARK])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SOCKATMARK])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SOCKATMARK$])
-+m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_USELOCALE], [/* Define to 1 if you have the `uselocale\' function. */
-+@%:@undef HAVE_USELOCALE])
-+m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_USELOCALE])
-+m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_USELOCALE$])
 +m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
 +You should run autoupdate.], [../../../lib/autoconf/lang.m4:125: AC_LANG_SAVE is expanded from...
 +acinclude.m4:134: GLIBCXX_CHECK_COMPILER_FEATURES is expanded from...
@@ -111619,6 +111744,278 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/trace
 +linkage.m4:356: GLIBCXX_CHECK_MATH_SUPPORT is expanded from...
 +crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
 +configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:125: AC_LANG_SAVE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_CPLUSPLUS' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/c.m4:252: AC_LANG_CPLUSPLUS is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_COMPILE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:2614: AC_TRY_COMPILE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:134: AC_LANG_RESTORE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_AT_QUICK_EXIT], [/* Define to 1 if you have the `at_quick_exit\' function. */
++@%:@undef HAVE_AT_QUICK_EXIT])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_AT_QUICK_EXIT])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_AT_QUICK_EXIT$])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:125: AC_LANG_SAVE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_CPLUSPLUS' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/c.m4:252: AC_LANG_CPLUSPLUS is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_COMPILE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:2614: AC_TRY_COMPILE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:134: AC_LANG_RESTORE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:245: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_QUICK_EXIT], [/* Define to 1 if you have the `quick_exit\' function. */
++@%:@undef HAVE_QUICK_EXIT])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_QUICK_EXIT])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_QUICK_EXIT$])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:125: AC_LANG_SAVE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_CPLUSPLUS' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/c.m4:252: AC_LANG_CPLUSPLUS is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_COMPILE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:2614: AC_TRY_COMPILE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:134: AC_LANG_RESTORE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_STRTOLD], [/* Define to 1 if you have the `strtold\' function. */
++@%:@undef HAVE_STRTOLD])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_STRTOLD])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_STRTOLD$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([_strtold], [#if defined (HAVE__STRTOLD) && ! defined (HAVE_STRTOLD)
++# define HAVE_STRTOLD 1
++# define strtold _strtold
++#endif])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_FOREACH' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:194: AC_FOREACH is expanded from...
++linkage.m4:37: GLIBCXX_MAYBE_UNDERSCORED_FUNCS is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_SAVE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:125: AC_LANG_SAVE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_CPLUSPLUS' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/c.m4:252: AC_LANG_CPLUSPLUS is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_COMPILE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:2614: AC_TRY_COMPILE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_LANG_RESTORE' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/lang.m4:134: AC_LANG_RESTORE is expanded from...
++../../../lib/m4sugar/m4sh.m4:639: AS_IF is expanded from...
++../../../lib/autoconf/general.m4:2031: AC_CACHE_VAL is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_STRTOF], [/* Define to 1 if you have the `strtof\' function. */
++@%:@undef HAVE_STRTOF])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_STRTOF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_STRTOF$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([_strtof], [#if defined (HAVE__STRTOF) && ! defined (HAVE_STRTOF)
++# define HAVE_STRTOF 1
++# define strtof _strtof
++#endif])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_FOREACH' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:194: AC_FOREACH is expanded from...
++linkage.m4:37: GLIBCXX_MAYBE_UNDERSCORED_FUNCS is expanded from...
++linkage.m4:274: GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2 is expanded from...
++linkage.m4:333: GLIBCXX_CHECK_STDLIB_SUPPORT is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AC_SUBST([SECTION_FLAGS])
++m4trace:configure.ac:357: -1- AC_SUBST_TRACE([SECTION_FLAGS])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^SECTION_FLAGS$])
++m4trace:configure.ac:357: -1- _m4_warn([obsolete], [The macro `AC_TRY_LINK' is obsolete.
++You should run autoupdate.], [../../../lib/autoconf/general.m4:2687: AC_TRY_LINK is expanded from...
++acinclude.m4:181: GLIBCXX_CHECK_LINKER_FEATURES is expanded from...
++crossconfig.m4:5: GLIBCXX_CROSSCONFIG is expanded from...
++configure.ac:357: the top level])
++m4trace:configure.ac:357: -1- AC_SUBST([SECTION_LDFLAGS])
++m4trace:configure.ac:357: -1- AC_SUBST_TRACE([SECTION_LDFLAGS])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^SECTION_LDFLAGS$])
++m4trace:configure.ac:357: -1- AC_SUBST([OPT_LDFLAGS])
++m4trace:configure.ac:357: -1- AC_SUBST_TRACE([OPT_LDFLAGS])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^OPT_LDFLAGS$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SETENV])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SETENV$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITEF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITEF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITE])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITE$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FREXPF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FREXPF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_HYPOT])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_HYPOT$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_HYPOTF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_HYPOTF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISINF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISINF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNAN])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNAN$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNANF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNANF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ACOSF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ACOSF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ASINF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ASINF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ATAN2F])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ATAN2F$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ATANF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ATANF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_CEILF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_CEILF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_COSF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_COSF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_COSHF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_COSHF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_EXPF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_EXPF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FABSF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FABSF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FLOORF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FLOORF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FMODF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FMODF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FREXPF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FREXPF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LDEXPF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LDEXPF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LOG10F])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LOG10F$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LOGF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_LOGF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_MODFF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_MODFF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_POWF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_POWF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SINF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SINF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SINHF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SINHF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SQRTF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SQRTF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TANF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TANF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TANHF])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TANHF$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_FINITEL])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_FINITEL$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISINFL])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISINFL$])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_ISNANL])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_ISNANL$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE___CXA_THREAD_ATEXIT], [/* Define to 1 if you have the `__cxa_thread_atexit\' function. */
++@%:@undef HAVE___CXA_THREAD_ATEXIT])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE___CXA_THREAD_ATEXIT])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE___CXA_THREAD_ATEXIT$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_ALIGNED_ALLOC], [/* Define to 1 if you have the `aligned_alloc\' function. */
++@%:@undef HAVE_ALIGNED_ALLOC])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_POSIX_MEMALIGN], [/* Define to 1 if you have the `posix_memalign\' function. */
++@%:@undef HAVE_POSIX_MEMALIGN])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_MEMALIGN], [/* Define to 1 if you have the `memalign\' function. */
++@%:@undef HAVE_MEMALIGN])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE__ALIGNED_MALLOC], [/* Define to 1 if you have the `_aligned_malloc\' function. */
++@%:@undef HAVE__ALIGNED_MALLOC])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_TIMESPEC_GET], [/* Define to 1 if you have the `timespec_get\' function. */
++@%:@undef HAVE_TIMESPEC_GET])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_TIMESPEC_GET])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_TIMESPEC_GET$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_SOCKATMARK], [/* Define to 1 if you have the `sockatmark\' function. */
++@%:@undef HAVE_SOCKATMARK])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_SOCKATMARK])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_SOCKATMARK$])
++m4trace:configure.ac:357: -1- AH_OUTPUT([HAVE_USELOCALE], [/* Define to 1 if you have the `uselocale\' function. */
++@%:@undef HAVE_USELOCALE])
++m4trace:configure.ac:357: -1- AC_DEFINE_TRACE_LITERAL([HAVE_USELOCALE])
++m4trace:configure.ac:357: -1- m4_pattern_allow([^HAVE_USELOCALE$])
 +m4trace:configure.ac:357: -1- AC_SUBST([SECTION_FLAGS])
 +m4trace:configure.ac:357: -1- AC_SUBST_TRACE([SECTION_FLAGS])
 +m4trace:configure.ac:357: -1- m4_pattern_allow([^SECTION_FLAGS$])
@@ -131297,8 +131694,14 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/autom4te.cache/trace
 +m4trace:configure.ac:661: -1- AC_REQUIRE_AUX_FILE([ltmain.sh])
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/configure ethereal-gcc-12.2.0/libstdc++-v3/configure
 --- gcc-12.2.0/libstdc++-v3/configure	2022-08-19 03:09:55.416698774 -0500
-+++ ethereal-gcc-12.2.0/libstdc++-v3/configure	2025-08-15 11:43:41.477900574 -0500
-@@ -47504,0 +47505,5731 @@
++++ ethereal-gcc-12.2.0/libstdc++-v3/configure	2025-09-13 10:54:06.465520543 -0500
+@@ -15600 +15600 @@
+-if test "$enable_shared" = yes; then
++if test "$enable_shared" = yes || test "${with_pic+set}" = set; then
+@@ -47218,0 +47219,5974 @@
++
++    ;;
++
 +  *-ethereal*)
 +
 +  # All these tests are for C++; save the language and the compiler flags.
@@ -137027,17 +137430,263 @@ diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/configure ethereal-g
 +  LIBS="$ac_save_LIBS"
 +  CXXFLAGS="$ac_save_CXXFLAGS"
 +
-+    GILBCXX_CHECK_STDLIB_SUPPORT
-+    ;;
 +
++  ac_test_CXXFLAGS="${CXXFLAGS+set}"
++  ac_save_CXXFLAGS="$CXXFLAGS"
++  CXXFLAGS='-fno-builtin -D_GNU_SOURCE'
++
++
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for at_quick_exit declaration" >&5
++$as_echo_n "checking for at_quick_exit declaration... " >&6; }
++  if test x${glibcxx_cv_func_at_quick_exit_use+set} != xset; then
++    if ${glibcxx_cv_func_at_quick_exit_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++
++
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ at_quick_exit(0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_at_quick_exit_use=yes
++else
++  glibcxx_cv_func_at_quick_exit_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_at_quick_exit_use" >&5
++$as_echo "$glibcxx_cv_func_at_quick_exit_use" >&6; }
++  if test x$glibcxx_cv_func_at_quick_exit_use = x"yes"; then
++    for ac_func in at_quick_exit
++do :
++  ac_fn_c_check_func "$LINENO" "at_quick_exit" "ac_cv_func_at_quick_exit"
++if test "x$ac_cv_func_at_quick_exit" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_AT_QUICK_EXIT 1
++_ACEOF
++
++fi
++done
++
++  fi
++
++
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for quick_exit declaration" >&5
++$as_echo_n "checking for quick_exit declaration... " >&6; }
++  if test x${glibcxx_cv_func_quick_exit_use+set} != xset; then
++    if ${glibcxx_cv_func_quick_exit_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++
++
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ quick_exit(0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_quick_exit_use=yes
++else
++  glibcxx_cv_func_quick_exit_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_quick_exit_use" >&5
++$as_echo "$glibcxx_cv_func_quick_exit_use" >&6; }
++  if test x$glibcxx_cv_func_quick_exit_use = x"yes"; then
++    for ac_func in quick_exit
++do :
++  ac_fn_c_check_func "$LINENO" "quick_exit" "ac_cv_func_quick_exit"
++if test "x$ac_cv_func_quick_exit" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_QUICK_EXIT 1
++_ACEOF
++
++fi
++done
++
++  fi
++
++
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtold declaration" >&5
++$as_echo_n "checking for strtold declaration... " >&6; }
++  if test x${glibcxx_cv_func_strtold_use+set} != xset; then
++    if ${glibcxx_cv_func_strtold_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++
++
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ strtold(0, 0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_strtold_use=yes
++else
++  glibcxx_cv_func_strtold_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_strtold_use" >&5
++$as_echo "$glibcxx_cv_func_strtold_use" >&6; }
++  if test x$glibcxx_cv_func_strtold_use = x"yes"; then
++    for ac_func in strtold
++do :
++  ac_fn_c_check_func "$LINENO" "strtold" "ac_cv_func_strtold"
++if test "x$ac_cv_func_strtold" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_STRTOLD 1
++_ACEOF
++
++fi
++done
++
++  fi
++
++
++
++
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strtof declaration" >&5
++$as_echo_n "checking for strtof declaration... " >&6; }
++  if test x${glibcxx_cv_func_strtof_use+set} != xset; then
++    if ${glibcxx_cv_func_strtof_use+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++
++
++      ac_ext=cpp
++ac_cpp='$CXXCPP $CPPFLAGS'
++ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
++
++      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <stdlib.h>
++int
++main ()
++{
++ strtof(0, 0);
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_cxx_try_compile "$LINENO"; then :
++  glibcxx_cv_func_strtof_use=yes
++else
++  glibcxx_cv_func_strtof_use=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++      ac_ext=c
++ac_cpp='$CPP $CPPFLAGS'
++ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
++ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
++ac_compiler_gnu=$ac_cv_c_compiler_gnu
++
++
++fi
++
++  fi
++  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $glibcxx_cv_func_strtof_use" >&5
++$as_echo "$glibcxx_cv_func_strtof_use" >&6; }
++  if test x$glibcxx_cv_func_strtof_use = x"yes"; then
++    for ac_func in strtof
++do :
++  ac_fn_c_check_func "$LINENO" "strtof" "ac_cv_func_strtof"
++if test "x$ac_cv_func_strtof" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_STRTOF 1
++_ACEOF
++
++fi
++done
++
++  fi
++
++
++
++
++  CXXFLAGS="$ac_save_CXXFLAGS"
+diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/configure.ac ethereal-gcc-12.2.0/libstdc++-v3/configure.ac
+--- gcc-12.2.0/libstdc++-v3/configure.ac	2022-08-19 03:09:55.420698825 -0500
++++ ethereal-gcc-12.2.0/libstdc++-v3/configure.ac	2025-09-13 09:53:03.171071193 -0500
+@@ -121 +121 @@
+-if test "$enable_shared" = yes; then
++if test "$enable_shared" = yes || test "${with_pic+set}" = set; then
 diff '--color=auto' -rU0 --new-file gcc-12.2.0/libstdc++-v3/crossconfig.m4 ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4
 --- gcc-12.2.0/libstdc++-v3/crossconfig.m4	2022-08-19 03:09:55.420698825 -0500
-+++ ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4	2025-08-15 11:43:41.479446703 -0500
-@@ -138,0 +139,7 @@
++++ ethereal-gcc-12.2.0/libstdc++-v3/crossconfig.m4	2025-09-13 09:53:03.178040000 -0500
+@@ -90,0 +91,7 @@
 +  *-ethereal*)
 +    GLIBCXX_CHECK_COMPILER_FEATURES
 +    GLIBCXX_CHECK_LINKER_FEATURES
 +    GLIBCXX_CHECK_MATH_SUPPORT
-+    GILBCXX_CHECK_STDLIB_SUPPORT
++    GLIBCXX_CHECK_STDLIB_SUPPORT
 +    ;;
 +
