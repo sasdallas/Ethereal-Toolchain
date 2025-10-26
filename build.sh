@@ -74,7 +74,7 @@ fi
 
 # First, do binutils
 echo "Downloading binutils"
-wget https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.gz
+wget https://ftpmirror.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.gz
 tar -xf binutils-${BINUTILS_VERSION}.tar.gz
 cd binutils-${BINUTILS_VERSION}
 
@@ -102,7 +102,7 @@ cd ..
 
 # Do GCC
 echo "Downloading GCC"
-wget https://ftp.gnu.org/gnu/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
+wget https://ftpmirror.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
 tar -xf gcc-${GCC_VERSION}.tar.gz
 
 # Apply patch
