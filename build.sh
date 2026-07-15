@@ -3,7 +3,7 @@
 set -e
 
 if [[ -z "${SYSROOT}" ]]; then
-	if [[ -z "${BUILD_SYSROOT} "]]; then
+	if [[ -z "${BUILD_SYSROOT}" ]]; then
 		echo "ERROR: Please set \$SYSROOT before running this script."
 		echo "SYSROOT is the system root of the cloned Ethereal installation."
 		echo "Clone Ethereal, run make install-headers, and your sysroot is in build-output/sysroot"
