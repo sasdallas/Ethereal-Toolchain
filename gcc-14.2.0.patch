@@ -1,0 +1,142 @@
+diff -Naur old_extract/gcc-14.2.0/config.sub new_workspace/gcc-14.2.0/config.sub
+--- a/config.sub	2024-08-01 03:17:13.000000000 -0500
++++ b/config.sub	2026-07-15 09:15:00.741810552 -0500
+@@ -1749,7 +1749,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* )
++	     | fiwix* | ethereal* )
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/gcc-14.2.0/fixincludes/mkfixinc.sh new_workspace/gcc-14.2.0/fixincludes/mkfixinc.sh
+--- a/fixincludes/mkfixinc.sh	2024-08-01 03:17:13.000000000 -0500
++++ b/fixincludes/mkfixinc.sh	2026-07-15 09:15:27.251578217 -0500
+@@ -11,6 +11,8 @@
+ 
+ # Check for special fix rules for particular targets
+ case $machine in
++    *-ethereal* | \
++    *-*-ethereal* | \
+     i?86-*-cygwin* | \
+     i?86-*-mingw32* | \
+     x86_64-*-mingw32* | \
+diff -Naur old_extract/gcc-14.2.0/gcc/config/ethereal.h new_workspace/gcc-14.2.0/gcc/config/ethereal.h
+--- a/gcc/config/ethereal.h	1969-12-31 18:00:00.000000000 -0600
++++ b/gcc/config/ethereal.h	2026-07-15 09:23:05.836084831 -0500
+@@ -0,0 +1,27 @@
++#undef TARGET_ETHEREAL
++#define TARGET_ETHEREAL 1
++
++#undef LIB_SPEC
++#define LIB_SPEC "-lc -lm"
++
++#undef LINK_SPEC
++#define LINK_SPEC "%{shared:-shared} %{static:-static} %{!shared: %{!static: %{rdynamic:-export-dynamic}}} %{!dynamic-linker:-dynamic-linker /usr/lib/ld.so}"
++
++#undef STARTFILE_SPEC
++#define STARTFILE_SPEC "%{!shared:crt0.o%s} crti.o%s %{shared:crtbeginS.o%s;:crtbegin.o%s}"
++
++#undef ENDFILE_SPEC
++#define ENDFILE_SPEC "%{shared:crtendS.o%s;:crtend.o%s} crtn.o%s"
++
++
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS()      \
++  do {                                \
++    builtin_define ("__ETHEREAL__");      \
++    builtin_define ("__ethereal__");	\
++    builtin_define ("__unix__");      \
++    builtin_assert ("system=ethereal");   \
++    builtin_assert ("system=unix");   \
++    builtin_assert ("system=posix");   \
++  } while(0);
++
+diff -Naur old_extract/gcc-14.2.0/gcc/config.gcc new_workspace/gcc-14.2.0/gcc/config.gcc
+--- a/gcc/config.gcc	2024-08-01 03:17:14.000000000 -0500
++++ b/gcc/config.gcc	2026-07-15 09:22:03.760155955 -0500
+@@ -970,6 +970,15 @@
+       ;;
+   esac
+   ;;
++*-*-ethereal*)
++  extra_options="$extra_options gnu-user.opt"
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  use_gcc_stdint=provide
++  thread_file='posix'
++  default_gnu_indirect_functions=yes
++  ;;
+ *-*-netbsd*)
+   tm_p_file="${tm_p_file} netbsd-protos.h"
+   tmake_file="t-netbsd t-slibgcc"
+@@ -1929,6 +1937,12 @@
+ i[34567]86-*-elfiamcu)
+ 	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h newlib-stdint.h i386/iamcu.h"
+ 	;;
++i[34567]86-*-ethereal*)
++	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/i386elf.h gnu-user.h ethereal.h"
++	;;
++x86_64-*-ethereal*)
++	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h glibc-stdint.h i386/i386elf.h i386/x86-64.h gnu-user.h ethereal.h"
++	;;
+ i[34567]86-*-elf*)
+ 	tm_file="${tm_file} i386/unix.h i386/att.h elfos.h newlib-stdint.h i386/i386elf.h"
+ 	;;
+diff -Naur old_extract/gcc-14.2.0/libatomic/configure.tgt new_workspace/gcc-14.2.0/libatomic/configure.tgt
+--- a/libatomic/configure.tgt	2024-08-01 03:17:17.000000000 -0500
++++ b/libatomic/configure.tgt	2026-07-15 09:27:04.045525735 -0500
+@@ -148,7 +148,7 @@
+ 	tmake_file="t-aix"
+ 	;;
+ 
+-  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu \
++  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu | *-*-ethereal* \
+   | *-*-netbsd* | *-*-freebsd* | *-*-openbsd* | *-*-dragonfly* \
+   | *-*-solaris2* | *-*-sysv4* | *-*-irix6* | *-*-osf* | *-*-hpux11* \
+   | *-*-darwin* | *-*-aix* | *-*-cygwin*)
+diff -Naur old_extract/gcc-14.2.0/libgcc/config.host new_workspace/gcc-14.2.0/libgcc/config.host
+--- a/libgcc/config.host	2024-08-01 03:17:17.000000000 -0500
++++ b/libgcc/config.host	2026-07-15 09:28:52.971211361 -0500
+@@ -778,6 +778,10 @@
+ 	;;
+ x86_64-*-openbsd*)
+ 	;;
++x86_64-*-ethereal*)
++	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o crtbeginS.o crtendS.o crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
++	tmake_file="$tmake_file t-crtstuff-pic t-libgcc-pic i386/t-crtpc t-crtfm i386/t-crtstuff t-dfprules"
++	;;
+ i[34567]86-*-linux*)
+ 	extra_parts="$extra_parts crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
+ 	tmake_file="${tmake_file} i386/t-crtpc t-crtfm i386/t-crtstuff t-dfprules" 
+diff -Naur old_extract/gcc-14.2.0/libstdc++-v3/configure.ac new_workspace/gcc-14.2.0/libstdc++-v3/configure.ac
+--- a/libstdc++-v3/configure.ac	2024-08-01 03:17:18.000000000 -0500
++++ b/libstdc++-v3/configure.ac	2026-07-15 09:18:46.564952628 -0500
+@@ -134,7 +134,7 @@
+ # Use glibcxx_compiler_pic_flag to designate a compile-time flags for
+ # creating position-independent objects. This varies with the target
+ # hardware and operating system, but is often: -DPIC -fPIC.
+-if test "$enable_shared" = yes; then
++if test "$enable_shared" = yes || test "${with_pic+set}" = set; then
+   glibcxx_lt_pic_flag="-prefer-pic"
+   glibcxx_compiler_pic_flag="$lt_prog_compiler_pic_CXX"
+   glibcxx_compiler_shared_flag="-D_GLIBCXX_SHARED"
+diff -Naur old_extract/gcc-14.2.0/libstdc++-v3/crossconfig.m4 new_workspace/gcc-14.2.0/libstdc++-v3/crossconfig.m4
+--- a/libstdc++-v3/crossconfig.m4	2024-08-01 03:17:18.000000000 -0500
++++ b/libstdc++-v3/crossconfig.m4	2026-07-15 09:19:15.666723736 -0500
+@@ -88,6 +88,13 @@
+     AC_DEFINE(HAVE_HYPOT)
+     ;;
+ 
++  *-ethereal*)
++    GLIBCXX_CHECK_COMPILER_FEATURES
++    GLIBCXX_CHECK_LINKER_FEATURES
++    GLIBCXX_CHECK_MATH_SUPPORT
++    GLIBCXX_CHECK_STDLIB_SUPPORT
++    ;;
++
+   *-freebsd*)
+     SECTION_FLAGS='-ffunction-sections -fdata-sections'
+     AC_SUBST(SECTION_FLAGS) 
