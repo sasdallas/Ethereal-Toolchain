@@ -40,7 +40,7 @@ Install binutils to your host computer with the following commands:
 ```
 mkdir build-binutils
 cd build-binutils
-../binutils-2.42/configure --target=$ARCH-ethereal --prefix="/usr" --with-sysroot=$SYSROOT --disable-werror
+../binutils-2.42/configure --target=$ARCH-ethereal --prefix="/usr" --with-sysroot=$SYSROOT --disable-werror --enable-default-execstack=no
 make -j4
 sudo make DESTDIR=$DESTDIR install
 ```

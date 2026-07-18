@@ -3,16 +3,10 @@
 set -e
 
 if [[ -z "${SYSROOT}" ]]; then
-	if [[ -z "${BUILD_SYSROOT}" ]]; then
-		echo "ERROR: Please set \$SYSROOT before running this script."
-		echo "SYSROOT is the system root of the cloned Ethereal installation."
-		echo "Clone Ethereal, run make install-headers, and your sysroot is in build-output/sysroot"
-		exit 1
-	fi
-
-	export SYSROOT=/
-else
-	export BUILD_SYSROOT=${SYSROOT}
+	echo "ERROR: Please set \$SYSROOT before running this script."
+	echo "SYSROOT is the system root of the cloned Ethereal installation."
+	echo "Clone Ethereal, run make install-headers, and your sysroot is in build-output/sysroot"
+	exit 1
 fi
 
 if [[ -z "${ARCH}" ]]; then
@@ -150,7 +144,7 @@ echo "Starting build of binutils"
 mkdir build-binutils
 cd build-binutils
 
-../binutils-${BINUTILS_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --disable-werror --with-sysroot=$SYSROOT --with-build-sysroot=$BUILD_SYSROOT
+../binutils-${BINUTILS_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --disable-werror --with-sysroot=$SYSROOT --enable-default-execstack=no
 make -j${JOBS} all
 
 if [[ "$NEED_AUTH_INSTALL" -eq 1 ]]; then
@@ -185,7 +179,7 @@ echo "Reconfigured libstdc++-v3"
 echo "Starting build of GCC"
 mkdir build-gcc
 cd build-gcc
-../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --with-sysroot=$SYSROOT --with-build-sysroot=$SYSROOT --enable-languages=c,c++ --disable-multilib --enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
+../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --with-sysroot=$SYSROOT --enable-languages=c,c++ --disable-multilib --enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
 make -j4 all-gcc all-target-libgcc
 
 # Install GCC

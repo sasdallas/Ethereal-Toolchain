@@ -71,7 +71,7 @@ sed -i "s/USE_ACPICA = 1/USE_ACPICA = 0/" conf/build/${ARCH}.mk || true
 bash -c "buildscripts/install-headers.sh"
 popd
 
-export BUILD_SYSROOT="${WORKSPACE}/Ethereal/build-output/sysroot/"
+export SYSROOT="${WORKSPACE}/Ethereal/build-output/sysroot/"
 export DESTDIR="${WORKSPACE}/toolchain/"
 mkdir -p ${DESTDIR}
 
