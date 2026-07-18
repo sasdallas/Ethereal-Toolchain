@@ -45,6 +45,8 @@ make -j4
 sudo make DESTDIR=$DESTDIR install
 ```
 
+**You must have $DESTDIR/usr/bin/ in your path before compiling GCC!**
+
 Install GCC to your host computer with the following commands:
 
 ```

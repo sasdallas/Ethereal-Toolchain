@@ -153,6 +153,9 @@ else
 	make DESTDIR=${DESTDIR} install
 fi
 
+# This is needed
+export PATH=${DESTDIR}/usr/bin/:$PATH
+
 echo "Binutils built and installed successfully"
 cd ..
 
