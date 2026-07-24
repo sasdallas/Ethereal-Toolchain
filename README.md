@@ -26,7 +26,7 @@ Once you have done this, your `SYSROOT` will be in `<ethereal root>/build-output
 Automatic building is easy. There are two scripts: `build.sh` and `build_stage2.sh`
 
 Run `build.sh` and it will compile and install the first part of the toolchain.\
-You need to have an Ethereal installation that has already ran `make install-headers`.
+You need to have an Ethereal installation that has already ran `make headers`.
 
 Then, go back to Ethereal and run `make all` to compile the OS.
 
