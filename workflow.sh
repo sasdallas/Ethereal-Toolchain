@@ -82,6 +82,9 @@ pwd
 popd
 
 # Compile ethereal
+export PATH=${DESTDIR}/usr/bin/:$PATH
+x86_64-ethereal-gcc --version
+
 cd ${WORKSPACE}/Ethereal
 make all
 
