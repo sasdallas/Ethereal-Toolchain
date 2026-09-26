@@ -105,7 +105,7 @@ diff -Naur old_extract/gcc-14.2.0/libgcc/config.host new_workspace/gcc-14.2.0/li
  x86_64-*-openbsd*)
  	;;
 +x86_64-*-ethereal*)
-+	extra_parts="$extra_parts crti.o crtbegin.o crtend.o crtn.o crtbeginS.o crtendS.o crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
++	extra_parts="$extra_parts crtbegin.o crtend.o crtbeginS.o crtendS.o crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
 +	tmake_file="$tmake_file t-crtstuff-pic t-libgcc-pic i386/t-crtpc t-crtfm i386/t-crtstuff t-dfprules"
 +	;;
  i[34567]86-*-linux*)

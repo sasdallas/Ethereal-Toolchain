@@ -18,7 +18,7 @@ export ARCH=<ETHEREAL ARCH>
 export DESTDIR=<DESTDIR>
 ```
 
-Prepare a system root by cloning Ethereal. You can then use the `make install-headers` target to install the system headers.\
+Prepare a system root by cloning Ethereal. You can then use the `make headers` target to install the system headers.\
 Once you have done this, your `SYSROOT` will be in `<ethereal root>/build-output/sysroot/`.
 
 ## Building (automatic)
