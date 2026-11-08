@@ -1,50 +1,67 @@
-name: Build Toolchain
+name: Build toolchain
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
-    name: Build (x86_64, host ${{ matrix.host }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - host: x86_64-linux
-            os: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential libgmp-dev libmpfr-dev libmpc-dev texinfo curl xz-utils meson ninja-build git python3 autoconf xorriso
+            build-essential bison flex gawk libgmp-dev libmpfr-dev libmpc-dev \
+            texinfo curl wget xz-utils zstd dpkg-dev meson ninja-build \
+            git python3 pkg-config nasm xorriso
 
-      - name: Build toolchain
+      - name: Build
+        run: ./workflow.sh "$RUNNER_TEMP/ethereal-toolchain" x86_64
+
+      - name: Package
         run: |
-          chmod +x workflow.sh
-          ./workflow.sh "${{ github.workspace }}/ethereal-toolchain" "x86_64"
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="0.0.0+git${GITHUB_RUN_NUMBER}"
+          fi
+          bash package.sh "$RUNNER_TEMP/ethereal-toolchain" x86_64 "$version" "$GITHUB_WORKSPACE/dist"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Test installed package
+        run: |
+          sudo apt-get install -y ./dist/*.deb
+          test "$(x86_64-ethereal-gcc -print-sysroot)" = /usr/x86_64-ethereal/sys-root
+          test "$(x86_64-ethereal-ld --print-sysroot)" = /usr/x86_64-ethereal/sys-root
+          x86_64-ethereal-pkg-config --version
+          printf '#include <stdio.h>\nint main(void) { puts("hello"); return 0; }\n' > "$RUNNER_TEMP/port.c"
+          x86_64-ethereal-gcc "$RUNNER_TEMP/port.c" -o "$RUNNER_TEMP/port"
+          test -s "$RUNNER_TEMP/port"
+          printf '#include <string>\nint main() { std::string s = "ethereal"; return s.empty(); }\n' > "$RUNNER_TEMP/port.cpp"
+          x86_64-ethereal-g++ "$RUNNER_TEMP/port.cpp" -o "$RUNNER_TEMP/port-cpp"
+          test -s "$RUNNER_TEMP/port-cpp"
+
+      - uses: actions/upload-artifact@v4
         with:
-          name: ethereal-x86_64-toolchain-${{ matrix.host }}
-          path: ethereal-*-toolchain.tar.xz
+          name: ethereal-toolchain-x86_64-linux
+          path: dist/*
+          if-no-files-found: error
 
-      - name: Upload error logs
+      - name: Upload build log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: libgcc-error-log
-          path: ${{ github.workspace }}/build-gcc/x86_64-ethereal/libgcc/config.log
-        
+          name: build-logs
+          path: |
+            build-gcc/x86_64-ethereal/libgcc/config.log
+            build-gcc/x86_64-ethereal/libstdc++-v3/config.log
+            build-binutils/config.log
+          if-no-files-found: ignore

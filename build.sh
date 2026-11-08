@@ -19,6 +19,8 @@ if [[ -z "${PREFIX}" ]]; then
 	export PREFIX=/usr
 fi
 
+CONFIGURED_SYSROOT="${TOOLCHAIN_SYSROOT:-$SYSROOT}"
+
 if [[ -z "${GCC_VERSION}" ]]; then
 	export GCC_VERSION=14.2.0
 fi
@@ -49,7 +51,7 @@ for arg in "$@"; do
 done
 
 echo "SYSTEM ROOT: ${SYSROOT}"
-echo "BUILD SYSTEM ROOT: ${BUILD_SYSROOT}"
+echo "COMPILER SYSROOT: ${CONFIGURED_SYSROOT}"
 echo "ARCHITECTURE: ${ARCH}"
 echo "PREFIX: ${PREFIX}"
 echo "INSTALL DIR: ${DESTDIR}"
@@ -118,7 +120,7 @@ echo "Starting build of binutils"
 mkdir build-binutils
 cd build-binutils
 
-../binutils-${BINUTILS_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --disable-werror --with-sysroot=$SYSROOT --enable-default-execstack=no
+../binutils-${BINUTILS_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --disable-werror --with-sysroot="$CONFIGURED_SYSROOT" --enable-default-execstack=no
 make -j${JOBS} all
 
 if [[ "$NEED_AUTH_INSTALL" -eq 1 ]]; then
@@ -156,7 +158,7 @@ echo "Reconfigured libstdc++-v3"
 echo "Starting build of GCC"
 mkdir build-gcc
 cd build-gcc
-../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --with-sysroot=$SYSROOT --enable-languages=c,c++ --disable-multilib --enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
+../gcc-${GCC_VERSION}/configure --target=${ARCH}-ethereal --prefix=$PREFIX --with-sysroot="$CONFIGURED_SYSROOT" --with-build-sysroot="$SYSROOT" --enable-languages=c,c++ --disable-multilib --enable-threads=posix --disable-multilib --enable-shared --enable-host-shared --with-pic
 make -j4 all-gcc all-target-libgcc
 
 # Install GCC

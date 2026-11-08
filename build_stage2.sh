@@ -20,7 +20,7 @@ if [[ -z "${PREFIX}" ]]; then
 fi
 
 if [[ -z "${GCC_VERSION}" ]]; then
-	export GCC_VERSION=12.2.0
+	export GCC_VERSION=14.2.0
 fi
 
 if [[ -z "${BINUTILS_VERSION}" ]]; then
@@ -63,11 +63,13 @@ set -u
 
 echo "=============================================================="
 
-read -p "Does everything above look good? [Y/N] " -n 1 -r
-echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborting."
-    exit 1
+if [[ "${1:-}" != "-f" && "${1:-}" != "--force" ]]; then
+    read -p "Does everything above look good? [Y/N] " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Aborting."
+        exit 1
+    fi
 fi
 
 cd build-gcc
