@@ -50,7 +50,9 @@ export PATH="${DESTDIR}/usr/bin/:${PATH}"
 "${ARCH}-ethereal-gcc" --version
 
 cd "${WORKSPACE}/Ethereal"
-make build
+
+# for some reason this is needed
+LDFLAGS="--sysroot=${SYSROOT%/} ${LDFLAGS:-}" make build
 
 # Compile stage 2
 pushd "${SCRIPT_DIR}"
