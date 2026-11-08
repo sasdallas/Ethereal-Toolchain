@@ -48,34 +48,6 @@ for arg in "$@"; do
     fi
 done
 
-# Check autoconf/automake version
-check_version() {
-	local tool=$1
-    local required_version=$2
-
-    if ! command -v "$tool" &> /dev/null; then
-        echo "ERROR: $tool is not installed. Please install it to continue."
-        exit 1
-    fi
-
-    local current_version
-    current_version=$("$tool" --version | head -n1 | awk '{print $NF}')
-
-    if [[ "$current_version" != "$required_version" ]]; then
-        echo "ERROR: $tool version mismatch!"
-        echo "       Required: $required_version"
-        echo "       Found:    $current_version"
-        echo "Please install the exact version required (else the tools throw an error), sorry for the inconvenience..."
-		echo "Feel free to take a look at the workflow to see how"
-        exit 1
-    fi
-
-    echo "Found $tool version: $current_version (MATCH)"
-}
-
-check_version "autoconf" "2.69"
-check_version "automake" "1.15.1"
-
 echo "SYSTEM ROOT: ${SYSROOT}"
 echo "BUILD SYSTEM ROOT: ${BUILD_SYSROOT}"
 echo "ARCHITECTURE: ${ARCH}"
@@ -107,6 +79,8 @@ else
 fi
 
 echo -e "\nOkay, everything looks good - building now.\n\n"
+
+source "$(dirname "${BASH_SOURCE[0]}")/autotools.sh"
 
 if test -d "build-binutils"; then
 	echo "Clearing old build data (binutils)"
