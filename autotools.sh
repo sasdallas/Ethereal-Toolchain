@@ -13,6 +13,7 @@ autotool_version() {
 
 install_autotool() (
     set -e
+    unset DESTDIR
     local tool="$1" version="$2" prefix="$3" archive workdir
     archive="${tool}-${version}.tar.gz"
     workdir=$(mktemp -d "${TMPDIR:-/tmp}/ethereal-autotools.XXXXXXXX")
